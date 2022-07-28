@@ -25,6 +25,9 @@ type MapFromFile struct {
 // varible environement pour le nom du fichier a traiter
 var FilePath = os.Getenv("file_path")
 
+// varibale environement pour le nom du fichier de sortie
+var OutputFileName = os.Getenv("output_file_name")
+
 // header du fichier csv de sortie
 //header := ["SRVID","Date d\'ouverture co","Date de souscription","Techno","Reseau","Code INSEE","Nb STB","STB1","STB2","STB3","STB4","STB5","STB6","STB7","STB8","STB9","STB10","Adresse IP","OPTION"]
 // initialise les variables avec les variables env
@@ -32,6 +35,10 @@ func Assign_env() {
 	//fichier par défaut , fichier de test
 	if FilePath == "" {
 		FilePath = "./assets/SMV_test_fichier.csv"
+	}
+
+	if OutputFileName == "" {
+		OutputFileName = "SMV_Output_file.csv"
 	}
 }
 
@@ -42,14 +49,14 @@ func ReadFile(filePath string) [][]string {
 	if err != nil {
 		log.Fatal(err)
 	}
-
+	// Lecture ligne par ligne du fichier ouvert
 	fileScanner := bufio.NewScanner(file_content)
 	fileScanner.Split(bufio.ScanLines)
-
+	//ajout de chaque ligne sous forme de tableau de string dans un autre tableau pour faire un tableau a 2 dimensions
 	for fileScanner.Scan() {
 		fileLines = append(fileLines, strings.Split(fileScanner.Text(), ";"))
 	}
-
+	// fermeture du fichier
 	file_content.Close()
 
 	return fileLines
@@ -71,8 +78,11 @@ func ReadFile(filePath string) [][]string {
 // 	return map
 // }
 
+// recupére les infos du clients pour créer un objet de type MapFromFile , definit plus haut
 func arrayToMap(fileLines [][]string) []MapFromFile {
+	//Tableau de MapFromFIle qui contiendra les lignes a insérer dans le fichier CSV de sortie
 	var arrayOfMap []MapFromFile
+	// defintion d'une ligne dans le fichier CSV de sortie
 	var mapToArrayOfMap MapFromFile
 	var line = 0
 	for line < len(fileLines) {
