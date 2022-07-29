@@ -149,7 +149,7 @@ func getOptions(line []string) string {
 	var option string
 	var re = regexp.MustCompile(`^[A-Z_]*$`)
 	for i := 4; i < len(line); i++ {
-		if re.FindString(line[i]) != "" && line[i] != "BYT" && line[i] != "FT" || line[i] == "VOD_24" {
+		if re.FindString(line[i]) != "" && line[i] != "BYT" && line[i] != "FT" || line[i] == "VOD_24" || line[i] == "FIBRE_BEIN_CRYP1" || line[i] == "FIBRE_BEIN_CRYP2" || line[i] == "FIBRE_BEIN_CRYP3" || line[i] == "FIBRE_BEIN_CRYP4" || line[i] == "FIBRE_BEIN_CRYP5" {
 			option = line[i]
 		}
 	}
@@ -232,7 +232,7 @@ func main() {
 	Assign_env()
 	// lecture du fichier
 	fmt.Println("lecture du fichier")
-	fileLines := ReadFile("./assets/SMV_test_fichier.csv")
+	fileLines := ReadFile(FilePath)
 	fmt.Println("reception de l'array de Map ")
 	arrayOfMapFromFile := arrayToMap(fileLines)
 	for _, value := range arrayOfMapFromFile {
