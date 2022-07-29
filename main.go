@@ -149,7 +149,7 @@ func getOptions(line []string) string {
 	var option string
 	var re = regexp.MustCompile(`^[A-Z_]*$`)
 	for i := 4; i < len(line); i++ {
-		if re.FindString(line[i]) != "" && line[i] != "BYT" && line[i] != "FT" || line[i] == "VOD_24" || line[i] == "FIBRE_BEIN_CRYP1" || line[i] == "FIBRE_BEIN_CRYP2" || line[i] == "FIBRE_BEIN_CRYP3" || line[i] == "FIBRE_BEIN_CRYP4" || line[i] == "FIBRE_BEIN_CRYP5" {
+		if re.FindString(line[i]) != "" && line[i] != "BYT" && line[i] != "FT" || line[i] == "VOD_24" || line[i] == "FIBRE_BEIN_CRYP1" || line[i] == "FIBRE_BEIN_CRYP2" || line[i] == "FIBRE_BEIN_CRYP3" || line[i] == "FIBRE_BEIN_CRYP4" || line[i] == "FIBRE_BEIN_CRYP5" || line[i] == "RISK_2" || line[i] == "PVR_40" {
 			option = line[i]
 		}
 	}
