@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
 	"regexp"
 	"strconv"
 	"strings"
@@ -147,10 +148,12 @@ func numAndImeiStb(line []string) ([]string, int) {
 // via une expression reguliére , on récupere l'option de la ligne actuelle
 func getOptions(line []string) string {
 	var option string
-	var re = regexp.MustCompile(`^[A-Z_]*$`)
+
 	for i := 4; i < len(line); i++ {
-		if re.FindString(line[i]) != "" && line[i] != "BYT" && line[i] != "FT" || line[i] == "VOD_24" || line[i] == "FIBRE_BEIN_CRYP1" || line[i] == "FIBRE_BEIN_CRYP2" || line[i] == "FIBRE_BEIN_CRYP3" || line[i] == "FIBRE_BEIN_CRYP4" || line[i] == "FIBRE_BEIN_CRYP5" || line[i] == "RISK_2" || line[i] == "PVR_40" {
-			option = line[i]
+		for _, value := range optionsList {
+			if value == line[i] {
+				option = line[i]
+			}
 		}
 	}
 	return option
@@ -227,13 +230,28 @@ func writeCSV(dataToCSV [][]string, outputFileName string) {
 	csvFile.Close()
 }
 
+func awkCommand(fileName string, outPutfileName string) {
+	command := "awk -F\\; '{print $1,$2,$3,$4,$5,$6,$18,$19,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17}' OFS=';' \"./" + fileName + "\" > " + outPutfileName
+
+	cmd := exec.Command(command)
+
+	err := cmd.Run()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+}
+
 func main() {
 	// configuration depuis les variables environement du fichier ecosystem.config.js
 	Assign_env()
 	// lecture du fichier
 	fmt.Println("lecture du fichier")
+	// Récuperation de toutes les lignes du fichier
 	fileLines := ReadFile(FilePath)
 	fmt.Println("reception de l'array de Map ")
+	// Création d'un tableau de map
 	arrayOfMapFromFile := arrayToMap(fileLines)
 	for _, value := range arrayOfMapFromFile {
 		fmt.Println("")
@@ -242,10 +260,85 @@ func main() {
 	fmt.Println("---------------------------------------------")
 	fmt.Println("trie des données ")
 	fmt.Println("---------------------------------------------")
+	// Création du tableau a deux dimensions nécessaire pour l'ecriture du fichier 
 	dataToCSVOut := sortData(arrayOfMapFromFile)
 	for _, value := range dataToCSVOut {
 		fmt.Println("")
 		fmt.Println(value)
 	}
-	writeCSV(dataToCSVOut, OutputFileName)
+	// Ecriture du fichier csv temporaire
+	writeCSV(dataToCSVOut, "temp.csv")
+	// Réorganisation des colonnés pour avoir les imei et le nombre d'STB a la fin 
+	awkCommand("temp.csv", OutputFileName)
 }
+// liste des options 
+var optionsList = []string{
+	"BBOX_FIBRE",
+	"RADIO_FIBRE",
+	"EXT_OTT_ACCESS",
+	"EXT_OTT_TVBASIC",
+	"FIBRE_BASIC",
+	"FIBRE_CHAINE_HUSTLER",
+	"HD",
+	"IPTV_MYTF1MAX_INCLUS",
+	"IPTV_STO",
+	"LIVE",
+	"SVOD",
+	"VOD",
+	"VOD_24",
+	"IPTV_NPVR_BASIC_PARC",
+	"NPVR_TYPE",
+	"BBOX_BYT",
+	"RADIO_BYT",
+	"IPTV_BYT_BASIC",
+	"IPTV_BYT_BASIC_ADVAN",
+	"OTT_LIVE_DRM_STB",
+	"TIME",
+	"FIBRE_SALTO",
+	"FIBRE_BBOXCINE",
+	"RISK_2",
+	"BBOX_FT",
+	"RADIO_FT",
+	"IPTV_FT_BASIC",
+	"IPTV_FT_BASIC_ADVANC",
+	"FIBRE_OL_TV",
+	"PVR_40",
+	"FIBRE_BBOXCINE_ES",
+	"IPTV_BYT_OCS",
+	"IPTV_SVOD_OCS",
+	"FIBRE_BEIN_CRYP1",
+	"FIBRE_BEIN_CRYP2",
+	"FIBRE_BEIN_CRYP3",
+	"FIBRE_BEIN_SPORT",
+	"FIBRE_DIVERTI",
+	"FIBRE_OCS",
+	"MULTI",
+	"IPTV_MYTF1MAX",
+	"PVR",
+	"FIBRE_PACK_X",
+	"IPTV_BYT_PACK_LUSOPH",
+	"IPTV_PBCANALB",
+	"IPTV_BYT_JEUNESSEB",
+	"FIBRE_PACK_3",
+	"IPTV_BYT_BBOXCINE",
+	"IPTV_BYT_GRAND_ANGLE",
+	"IPTV_BYT_SALTO",
+	"FIBRE_JEUNESSE",
+	"IPTV_PLAYZERB",
+	"FIBRE_DISNEY",
+	"IPTV_FT_JEUNESSEB",
+	"IPTV_FT_BBOXCINE",
+	"IPTV_FT_DIVERTI",
+	"IPTV_FT_BBOXCINE_ES",
+	"IPTV_FT_SALTO",
+	"FIBRE_PCK_SPORT",
+	"FIBRE_GRAND_ANGLE",
+	"IPTV_FT_BLACKPILLS",
+	"IPTV_FT_CHAINE_STAR",
+	"IPTV_FT_PACK_MUSIC",
+	"IPTV_BYT_ARABE_MAXI",
+	"USAGE_REPORT",
+	"FIBRE_JEUNESSEB",
+	"FIBRE_EUROSPORTB",
+	"FIBRE_MAGHREB",
+	"RISK_1"}
