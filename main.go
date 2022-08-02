@@ -37,11 +37,19 @@ var OutputFileName = os.Getenv("output_file_name")
 func Assign_env() {
 	//fichier par défaut , fichier de test
 	if FilePath == "" {
-		FilePath = "./assets/SMV_test_fichier.csv"
+		fmt.Println(" args : ")
+		fmt.Println(len(os.Args))
+		fmt.Println(os.Args)
+		if len(os.Args) >= 2 {
+			FilePath = "./assets/" + os.Args[1]
+		} else {
+			FilePath = "./assets/SMV_test_fichier.csv"
+		}
 	}
 
 	if OutputFileName == "" {
-		OutputFileName = "SMV_Output_file.csv"
+
+		OutputFileName = "Output_file.csv"
 	}
 }
 
@@ -174,7 +182,7 @@ func getIP(line []string) string {
 //Trie les données du tableau à deux dimensions
 func sortData(arrayOfMap []MapFromFile) [][]string {
 	var dataToCSV [][]string
-	header := []string{"SRVID", "Date d'ouverture co", "Date de souscription", "Techno", "Reseau", "Code INSEE", "Nb STB", "STB1", "STB2", "STB3", "STB4", "STB5", "STB6", "STB7", "STB8", "STB9", "STB10", "Adresse IP", "OPTIONS"}
+	header := []string{"SRVID", "Date d'ouverture co", "Date de souscription", "Techno", "Reseau", "Code INSEE", "Adresse IP", "OPTIONS", "Nb STB", "STB1", "STB2", "STB3", "STB4", "STB5", "STB6", "STB7", "STB8", "STB9", "STB10"}
 	//ajout des titres des colonnes
 	dataToCSV = append(dataToCSV, header)
 	for i := 0; i < len(arrayOfMap); i++ {
@@ -185,17 +193,6 @@ func sortData(arrayOfMap []MapFromFile) [][]string {
 		line = append(line, arrayOfMap[i].techno)
 		line = append(line, arrayOfMap[i].reseau)
 		line = append(line, arrayOfMap[i].code_insee)
-		line = append(line, strconv.FormatInt(int64(arrayOfMap[i].nb_stb), 10))
-		var cursor = 7
-		for index := 0; index <= 9; index++ {
-
-			if index < len(arrayOfMap[i].imei_stb) {
-				line = append(line, arrayOfMap[i].imei_stb[index])
-			} else {
-				line = append(line, "")
-			}
-			cursor++
-		}
 
 		line = append(line, arrayOfMap[i].adresse_ip)
 		var strOption = ""
@@ -207,6 +204,18 @@ func sortData(arrayOfMap []MapFromFile) [][]string {
 			}
 		}
 		line = append(line, strOption)
+		// Ce curseur se deplace de colonne en colonne , il permet de sauter le colonne vide pour les imei
+		var cursor = 8
+		line = append(line, strconv.FormatInt(int64(arrayOfMap[i].nb_stb), 10))
+		for index := 0; index <= 9; index++ {
+
+			if index < len(arrayOfMap[i].imei_stb) {
+				line = append(line, arrayOfMap[i].imei_stb[index])
+			} else {
+				line = append(line, "")
+			}
+			cursor++
+		}
 		dataToCSV = append(dataToCSV, line)
 	}
 	return dataToCSV
@@ -253,25 +262,26 @@ func main() {
 	fmt.Println("reception de l'array de Map ")
 	// Création d'un tableau de map
 	arrayOfMapFromFile := arrayToMap(fileLines)
-	for _, value := range arrayOfMapFromFile {
-		fmt.Println("")
-		fmt.Println(value)
-	}
+	// for _, value := range arrayOfMapFromFile {
+	// 	fmt.Println("")
+	// 	fmt.Println(value)
+	// }
 	fmt.Println("---------------------------------------------")
 	fmt.Println("trie des données ")
 	fmt.Println("---------------------------------------------")
-	// Création du tableau a deux dimensions nécessaire pour l'ecriture du fichier 
+	// Création du tableau a deux dimensions nécessaire pour l'ecriture du fichier
 	dataToCSVOut := sortData(arrayOfMapFromFile)
-	for _, value := range dataToCSVOut {
-		fmt.Println("")
-		fmt.Println(value)
-	}
+	// for _, value := range dataToCSVOut {
+	// 	fmt.Println("")
+	// 	fmt.Println(value)
+	// }
 	// Ecriture du fichier csv temporaire
-	writeCSV(dataToCSVOut, "temp.csv")
-	// Réorganisation des colonnés pour avoir les imei et le nombre d'STB a la fin 
-	awkCommand("temp.csv", OutputFileName)
+	writeCSV(dataToCSVOut, OutputFileName)
+	// Réorganisation des colonnés pour avoir les imei et le nombre d'STB a la fin
+	//awkCommand("temp.csv", OutputFileName)
 }
-// liste des options 
+
+// liste des options
 var optionsList = []string{
 	"BBOX_FIBRE",
 	"RADIO_FIBRE",
