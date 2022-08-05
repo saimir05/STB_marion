@@ -35,7 +35,7 @@ var OutputFileName = os.Getenv("output_file_name")
 
 // initialise les variables avec les variables env
 func Assign_env() {
-	//fichier par défaut , fichier de test
+	//fichier par défaut a traiter par defaut , si aucun argument n'est passé en paramétre  : /assets/extract.csv
 	if FilePath == "" {
 		fmt.Println(" args : ")
 		fmt.Println(len(os.Args))
@@ -43,7 +43,7 @@ func Assign_env() {
 		if len(os.Args) >= 2 {
 			FilePath = "./assets/" + os.Args[1]
 		} else {
-			FilePath = "./assets/SMV_test_fichier.csv"
+			FilePath = "./assets/extract.csv"
 		}
 	}
 
@@ -55,7 +55,10 @@ func Assign_env() {
 
 // ReadFile : Lit le fichier ligne par ligne et renvoie le contenu de chaque ligne dans un tableau a 2 dimension
 func ReadFile(filePath string) [][]string {
+	fmt.Println("-- Ouverture du fichier...")
 	file_content, err := os.Open(filePath)
+	// fermeture du fichier a la fin de l'execution de la fonction
+	defer file_content.Close()
 	var fileLines [][]string
 	if err != nil {
 		log.Fatal(err)
@@ -64,30 +67,13 @@ func ReadFile(filePath string) [][]string {
 	fileScanner := bufio.NewScanner(file_content)
 	fileScanner.Split(bufio.ScanLines)
 	//ajout de chaque ligne sous forme de tableau de string dans un autre tableau pour faire un tableau a 2 dimensions
+	fmt.Println("Lecture du fichier ligne par ligne ...")
 	for fileScanner.Scan() {
 		fileLines = append(fileLines, strings.Split(fileScanner.Text(), ";"))
 	}
-	// fermeture du fichier
-	file_content.Close()
-
+	fmt.Println("Tableau aé dimensions créé !")
 	return fileLines
 }
-
-// Initialise l'objet MapFromFile depuis la ligne lu
-// func initMapFromLine(line []string) MapFromLine {
-// 	var map MapFromFile
-// 	map.srvid = fileLines[line][0]
-// 	map.techno = fileLines[line][3]
-// 	map.reseau = fileLines[line][4]
-// 	map.imei_stb, map.nb_stb = numAndImeiStb(fileLines[line])
-// 	map.date_souscription = fileLines[line][2]
-// 	map.date_ouverture_commerical = fileLines[line][1]
-// 	map.code_insee = fileLines[line][6]
-// 	map.adresse_ip = getIP(fileLines[line])
-// 	arrayOfMap = append(arrayOfMap, mapToArrayOfMap)
-// 	fmt.Println("ligne : %s", line+1)
-// 	return map
-// }
 
 // recupére les infos du clients pour créer un objet de type MapFromFile , definit plus haut
 func arrayToMap(fileLines [][]string) []MapFromFile {
@@ -96,6 +82,7 @@ func arrayToMap(fileLines [][]string) []MapFromFile {
 	// defintion d'une ligne dans le fichier CSV de sortie
 	var mapOfLine MapFromFile
 	var line = 0
+	println("Récuperation des différents champs grace avec une RegEx ...")
 	for line < len(fileLines) {
 		if line == 0 {
 			mapOfLine.srvid = fileLines[line][0]
@@ -128,7 +115,6 @@ func arrayToMap(fileLines [][]string) []MapFromFile {
 				mapOfLine.code_insee = fileLines[line][6]
 				mapOfLine.adresse_ip = getIP(fileLines[line])
 				mapOfLine.options = append(mapOfLine.options, getOptions(fileLines[line]))
-				fmt.Println("ligne : %s", line+1)
 				line++
 			}
 		} else {
@@ -181,6 +167,7 @@ func getIP(line []string) string {
 
 //Trie les données du tableau à deux dimensions
 func sortData(arrayOfMap []MapFromFile) [][]string {
+	fmt.Println("trie des données dans les bonnes colonnes...")
 	var dataToCSV [][]string
 	header := []string{"SRVID", "Date d'ouverture co", "Date de souscription", "Techno", "Reseau", "Code INSEE", "Adresse IP", "OPTIONS", "Nb STB", "STB1", "STB2", "STB3", "STB4", "STB5", "STB6", "STB7", "STB8", "STB9", "STB10"}
 	//ajout des titres des colonnes
@@ -218,15 +205,17 @@ func sortData(arrayOfMap []MapFromFile) [][]string {
 		}
 		dataToCSV = append(dataToCSV, line)
 	}
+	fmt.Println("- Fin du trie !")
 	return dataToCSV
 }
 
 // Creation d'un fichier CSV a partir d'un tableau a 2 dimensions et un header
 func writeCSV(dataToCSV [][]string, outputFileName string) {
+	fmt.Println("Ecriture du fichier de sortie...")
 	csvFile, err := os.Create(outputFileName)
 
 	if err != nil {
-		log.Fatalf("failed creating file: %s", err)
+		log.Fatalf("Erreur dans la création di fichier: %s", err)
 	}
 
 	csvwriter := csv.NewWriter(csvFile)
@@ -237,6 +226,7 @@ func writeCSV(dataToCSV [][]string, outputFileName string) {
 	}
 	csvwriter.Flush()
 	csvFile.Close()
+	fmt.Println("fichier de sortie \"Output_file.csv\" créé !")
 }
 
 func awkCommand(fileName string, outPutfileName string) {
@@ -258,10 +248,10 @@ func main() {
 	// lecture du fichier
 	fmt.Println("lecture du fichier")
 	// Récuperation de toutes les lignes du fichier
-	fileLines := ReadFile(FilePath)
+	//fileLines := ReadFile(FilePath)
 	fmt.Println("reception de l'array de Map ")
 	// Création d'un tableau de map
-	arrayOfMapFromFile := arrayToMap(fileLines)
+	//arrayOfMapFromFile := arrayToMap(ReadFile(FilePath))
 	// for _, value := range arrayOfMapFromFile {
 	// 	fmt.Println("")
 	// 	fmt.Println(value)
@@ -270,14 +260,15 @@ func main() {
 	fmt.Println("trie des données ")
 	fmt.Println("---------------------------------------------")
 	// Création du tableau a deux dimensions nécessaire pour l'ecriture du fichier
-	dataToCSVOut := sortData(arrayOfMapFromFile)
+	//dataToCSVOut := sortData(arrayToMap(ReadFile(FilePath)))
 	// for _, value := range dataToCSVOut {
 	// 	fmt.Println("")
 	// 	fmt.Println(value)
 	// }
 	// Ecriture du fichier csv temporaire
-	writeCSV(dataToCSVOut, OutputFileName)
+	writeCSV(sortData(arrayToMap(ReadFile(FilePath))), OutputFileName)
 	// Réorganisation des colonnés pour avoir les imei et le nombre d'STB a la fin
+	fmt.Println("FIN !!!!")
 	//awkCommand("temp.csv", OutputFileName)
 }
 
